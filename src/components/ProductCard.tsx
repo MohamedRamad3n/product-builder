@@ -6,15 +6,24 @@ import CircleColor from "./ui/CircleColor";
 interface IProps {
   product: IProduct;
   setProductToEdit: (product: IProduct) => void;
-  openToEdit:()=>void;
+  openToEdit: () => void;
+  index: number;
+  setProductToUpdateIdx: (index: number) => void;
 }
-const ProductCard = ({ product, setProductToEdit,openToEdit }: IProps) => {
+const ProductCard = ({
+  product,
+  setProductToEdit,
+  openToEdit,
+  setProductToUpdateIdx,
+  index,
+}: IProps) => {
   const { title, description, imageURL, category, colors } = product;
   const inputFieldColor = colors.map((color) => (
     <CircleColor key={color} color={color} />
   ));
   const handleEdit = () => {
     setProductToEdit(product);
+    setProductToUpdateIdx(index);
     openToEdit();
   };
   return (

@@ -26,6 +26,7 @@ const App = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isOpenToEdit, setIsOpenToEdit] = useState(false);
   const [product, setProduct] = useState<IProduct>(defaultProductObj);
+  const [productToUpdateIdx, setProductToUpdateIdx] = useState<number>(0);
   const [productToEdit, setProductToEdit] =
     useState<IProduct>(defaultProductObj);
   const [errors, setErrors] = useState({
@@ -40,9 +41,6 @@ const App = () => {
     categories[0]
   );
 
-  console.log(productToEdit);
-
-  const { title, description, price, imageURL } = product;
   function open() {
     setIsOpen(true);
   }
@@ -79,6 +77,7 @@ const App = () => {
   };
   function handleSubmit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
+    const { title, description, price, imageURL } = product;
     const errors = productValidation({
       title,
       description,
@@ -107,6 +106,31 @@ const App = () => {
     setTimeout(() => {
       close();
     }, 1500);
+  }
+  function handleSubmitToEdit(event: FormEvent<HTMLFormElement>): void {
+    event.preventDefault();
+    const { title, description, price, imageURL } = productToEdit;
+    const errors = productValidation({
+      title,
+      description,
+      price,
+      imageURL,
+    });
+    const hasErrorMsg =
+      Object.values(errors).some((value) => value === "") &&
+      Object.values(errors).every((value) => value === "");
+    if (!hasErrorMsg) {
+      setErrors(errors);
+      return;
+    }
+    const updatedProducts = [...products];
+    updatedProducts[productToUpdateIdx] = {
+      ...productToEdit,
+      colors: tempColors.concat(productToEdit.colors),
+    };
+    setProducts(updatedProducts);
+    setTempColors([]);
+    closeToEdit();
   }
   function onCancel() {
     setProduct(defaultProductObj);
@@ -145,7 +169,7 @@ const App = () => {
         onChange={onChangeHandlerToEdit}
         value={productToEdit[input.name]}
       />
-      {/* <ErrorMessage msg={errors[input.name]} /> */}
+      <ErrorMessage msg={errors[input.name]} />
     </div>
   ));
   const inputFieldColor = colors.map((color) => (
@@ -157,14 +181,18 @@ const App = () => {
           setTempColors((prev) => prev.filter((item) => item !== color));
           return;
         }
+        if (productToEdit.colors.includes(color)) {
+          setTempColors((prev) => prev.filter((item) => item !== color));
+          return;
+        }
         setTempColors((prev) => [...prev, color]);
       }}
     />
   ));
   return (
     <main className="container mx-auto ">
-      <Button className="bg-indigo-700 hover:bg-indigo-800" onClick={open}>
-        Add
+      <Button className="bg-indigo-700 mt-5 w-48 hover:bg-indigo-800" onClick={open}>
+        Build A Product
       </Button>
       {/*Modal To Add Product */}
       <Modal close={close} title="Add A New Product" isOpen={isOpen}>
@@ -203,24 +231,26 @@ const App = () => {
       </Modal>
       {/* Modal To Edit Product*/}
       <Modal close={closeToEdit} title="Edit Product" isOpen={isOpenToEdit}>
-        <form className="space-y-3" onSubmit={handleSubmit}>
+        <form className="space-y-3" onSubmit={handleSubmitToEdit}>
           {inputToEdit}
           <Select
             selected={productToEdit.category}
-            setSelected={setSelectedCategory}
+            setSelected={(value) =>
+              setProductToEdit({ ...productToEdit, category: value })
+            }
           />
           <div className="flex mb-3 items-center space-x-3 flex-wrap">
-            {productToEdit.colors &&
-              productToEdit.colors.map((color) => {
-                return (
-                  <span
-                    className="m-1 rounded-md text-white"
-                    style={{ backgroundColor: color }}
-                  >
-                    {color}
-                  </span>
-                );
-              })}
+            {tempColors.concat(productToEdit.colors).map((color, index) => {
+              return (
+                <span
+                  key={index}
+                  className="m-1 rounded-md text-white"
+                  style={{ backgroundColor: color }}
+                >
+                  {color}
+                </span>
+              );
+            })}
           </div>
           <div className="flex mb-3 items-center space-x-3 flex-wrap">
             {inputFieldColor}
@@ -237,13 +267,15 @@ const App = () => {
         </form>
       </Modal>
       <div className="m-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 p-2 rounded-md">
-        {products.map((product) => {
+        {products.map((product, index) => {
           return (
             <ProductCard
               key={product.id}
               product={product}
               setProductToEdit={setProductToEdit}
               openToEdit={openToEdit}
+              index={index}
+              setProductToUpdateIdx={setProductToUpdateIdx}
             />
           );
         })}
