@@ -10,7 +10,10 @@ import ErrorMessage from "./components/ui/ErrorMessage";
 import CircleColor from "./components/ui/CircleColor";
 import { v4 as uuid } from "uuid";
 import Select from "./components/ui/Select";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 const App = () => {
+  const notifySuccess = (message: string) => toast.success(message);
   const defaultProductObj = {
     id: "",
     title: "",
@@ -25,6 +28,7 @@ const App = () => {
   };
   const [isOpen, setIsOpen] = useState(false);
   const [isOpenToEdit, setIsOpenToEdit] = useState(false);
+  const [isOpenToDelete, setIsOpenToDelete] = useState(false);
   const [product, setProduct] = useState<IProduct>(defaultProductObj);
   const [productToUpdateIdx, setProductToUpdateIdx] = useState<number>(0);
   const [productToEdit, setProductToEdit] =
@@ -52,6 +56,12 @@ const App = () => {
   }
   function closeToEdit() {
     setIsOpenToEdit(false);
+  }
+  function openToDelete() {
+    setIsOpenToDelete(true);
+  }
+  function closeToDelete() {
+    setIsOpenToDelete(false);
   }
   const onChangeHandler = (event: ChangeEvent<HTMLInputElement>) => {
     const { value, name } = event.target;
@@ -103,6 +113,7 @@ const App = () => {
     ]);
     setProduct(defaultProductObj);
     setTempColors([]);
+    notifySuccess("Product added successfully!");
     setTimeout(() => {
       close();
     }, 1500);
@@ -136,6 +147,15 @@ const App = () => {
     setProduct(defaultProductObj);
     close();
   }
+  const removeProductHandler = () => {
+    const filtered = products.filter(
+      (product) => product.id !== productToEdit.id
+    );
+    setProducts(filtered);
+    console.log(products);
+    notifySuccess("Product removed successfully!");
+    closeToDelete();
+  };
   const input = formInputsList.map((input) => (
     <div className="flex flex-col" key={input.id}>
       <label
@@ -190,8 +210,12 @@ const App = () => {
     />
   ));
   return (
-    <main className="container mx-auto ">
-      <Button className="bg-indigo-700 mt-5 w-48 hover:bg-indigo-800" onClick={open}>
+    <main className="container  mx-auto ">
+      <ToastContainer position="top-right" autoClose={3000} />
+      <Button
+        className="block w-fit bg-indigo-700 hover:bg-indigo-800 mx-auto my-10 px-10 font-medium"
+        onClick={open}
+      >
         Build A Product
       </Button>
       {/*Modal To Add Product */}
@@ -266,6 +290,38 @@ const App = () => {
           </div>
         </form>
       </Modal>
+      {/*Modal To Deleted */}
+      <Modal
+        close={closeToDelete}
+        title="Remove Product"
+        isOpen={isOpenToDelete}
+      >
+        <div className="space-y-4 p-4 text-center">
+          <h2 className="text-lg font-semibold text-gray-800">
+            Are you sure you want to remove this product?
+          </h2>
+          <p className="text-sm text-gray-600">
+            This action cannot be undone. The product will be permanently
+            deleted from your inventory.
+          </p>
+
+          <div className="flex justify-center space-x-3 mt-4">
+            <Button
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={removeProductHandler}
+            >
+              Yes, Remove
+            </Button>
+            <Button
+              className="bg-gray-500 hover:bg-gray-400 text-white"
+              onClick={onCancel}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
       <div className="m-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 p-2 rounded-md">
         {products.map((product, index) => {
           return (
@@ -274,6 +330,7 @@ const App = () => {
               product={product}
               setProductToEdit={setProductToEdit}
               openToEdit={openToEdit}
+              openToDelete={openToDelete}
               index={index}
               setProductToUpdateIdx={setProductToUpdateIdx}
             />

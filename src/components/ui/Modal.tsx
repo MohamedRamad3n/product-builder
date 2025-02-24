@@ -17,7 +17,10 @@ const Modal = ({ children, title, isOpen, close }: IProps) => {
         onClose={close}
         __demoMode
       >
-        <div className="fixed inset-0 backdrop-blur-sm bg-black/50" aria-hidden="true" />
+        <div
+          className="fixed inset-0 backdrop-blur-sm bg-black/50"
+          aria-hidden="true"
+        />
         <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
           <div className="flex min-h-full items-center justify-center p-4">
             <DialogPanel
